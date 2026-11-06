@@ -1,0 +1,11 @@
+EthCraft Arkiv public component, copyright 2026 EthCraft contributors.
+
+Reader, publisher, projection and handoff code are extracted from the earlier
+EthCraft/AgentCity integration (source commit 99ed4b3e6550bf311fa7aa05321ea0bccb1c9382).
+The checkpoint helper is pre-existing AgentCity support code, included with the
+project owner's authorization to publish this component. This extraction does
+not make the original project built from scratch at the event.
+
+Third-party packages retain their own licenses: Arkiv SDK and viem (MIT),
+esbuild (MIT). No Minecraft map, game asset, account, API key or wallet key is
+included. EthCraft's full repository remains private.
