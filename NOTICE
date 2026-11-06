@@ -13,3 +13,7 @@ included. EthCraft's full repository remains private.
 Structured work-order schema, reader and host coordination service are extracted
 from source commit 4658c1442c9cd832e207f28a644e295e81387eee. Controlled native
 and Rabdi evidence retain their original test scope and verification limits.
+
+The receipt-driven exact work-order skill is extracted from source commit
+1b89867c185398b7f7f45693abff3cb648f417d6. Live owner-run evidence preserves
+model failures, recovery and native-skill execution as distinct events.

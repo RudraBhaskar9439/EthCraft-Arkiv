@@ -8,6 +8,7 @@ import {build} from 'esbuild'
 import {stringToHex} from 'viem'
 import {createTaskReader,validateProgress} from '../src/read.mjs'
 import {projectProgress} from '../src/project.mjs'
+import {WorkOrders} from '../integration/work-orders.mjs'
 import {makeWorkSpec,workDigest,validateWorkRecord,withWorkOrders} from '../src/work-orders.mjs'
 
 test('work-order SDK schema validates exact recipes and publisher-bound mixed entity reads',async()=>{
@@ -17,6 +18,12 @@ test('work-order SDK schema validates exact recipes and publisher-bound mixed en
  assert.equal(spec.input.count,2)
  const record={recordType:'work-order',server,order:spec.id,kind:spec.kind,item:spec.item,status:'open',stage:0,deadline:spec.deadline,data:{version:1,spec,specDigest:workDigest(spec),verifications:[],claim:null,fixture:true}}
  validateWorkRecord(record,server)
+ const ownerId=randomUUID(),fence=randomUUID(),operationId='work-order:'+spec.id+':1'
+ const host=new WorkOrders({rootDirectory:'/unused-controlled-fixture',reader:{server}})
+ host.state.orders=[{id:spec.id,ownerId,spec,specDigest:workDigest(spec),status:'working',active:{stage:1,fence,operationId}}]
+ const job={ownerId,operationId,workOrder:{orderId:spec.id,stage:1,fence,specDigest:workDigest(spec)},effects:[{action:'withdraw',item:'oak_planks',count:2,position:spec.stages[1].source.position}]}
+ assert.deepEqual(host.nextStep(job),{tool:'craft',item:'stick',count:4})
+ job.pendingEffect={action:'craft'};assert.throws(()=>host.nextStep(job),/RECONCILIATION_REQUIRED/)
  assert.throws(()=>validateWorkRecord({...record,status:'completed'},server),/WORK_ORDER_STATE_INVALID/)
  assert.throws(()=>validateWorkRecord({...record,data:{...record.data,spec:{...spec,count:8}}},server),/WORK_ORDER_STAGE_INVALID/)
  const row={...Object.fromEntries(['server','kind','item','status'].map(k=>[k,{value:record[k]}])),orderId:{value:record.order},stage:{value:0n},deadline:{value:BigInt(record.deadline)},revision:{value:1n},data:{value:stringToHex(JSON.stringify(record.data))},$key:key,$owner:publisher,$expiresAt:200n}

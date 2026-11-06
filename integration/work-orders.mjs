@@ -121,6 +121,18 @@ export class WorkOrders {
     const o=this.owned(job.workOrder.orderId,job.ownerId),a=o.active
     if(o.status!=='working'||o.spec.deadline<=Date.now()||!a||a.fence!==job.workOrder.fence||a.stage!==job.workOrder.stage||a.operationId!==job.operationId||o.specDigest!==job.workOrder.specDigest)throw Error('WORK_ORDER_CLAIM_NOT_ACTIVE')
   }
+  nextStep(job){
+    this.guard(job)
+    if(job.pendingEffect)throw Error('WORK_ORDER_RECONCILIATION_REQUIRED')
+    const order=this.owned(job.workOrder.orderId,job.ownerId),stage=order.spec.stages[job.workOrder.stage],input=order.spec.input
+    const missingInput=input.count-totals(job,'withdraw',input.item,stage.source.position)
+    if(missingInput>0)return{tool:'withdraw',item:input.item,count:missingInput,position:stage.source.position}
+    const missingOutput=stage.count-totals(job,'craft',stage.item)
+    if(stage.action==='craft_delivery'&&missingOutput>0)return{tool:'craft',item:stage.item,count:missingOutput}
+    const missingDelivery=stage.count-totals(job,'deposit',stage.item,stage.destination.position)
+    if(missingDelivery>0)return{tool:'deposit',item:stage.item,count:missingDelivery,position:stage.destination.position}
+    return null
+  }
   authorizeStep(job,step){
     if(!job.workOrder)return
     this.guard(job)

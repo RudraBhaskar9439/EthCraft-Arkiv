@@ -48,6 +48,10 @@ the SDK schema and reader, and [`integration/work-orders.mjs`](integration/work-
 for the host coordination service. The host injects its actual approved-session,
 native observer and objective adapters; those private adapters are not public APIs.
 
+The [actual owner-driven work order](evidence/live-owner-work-order.json) now passed both server checks. Agent supplied two planks; 0G withdrew them once, crafted four sticks and deposited them, increasing its destination from 8 to 12 sticks. Independent SDK and anonymous public reads confirm completed entity `0x2d636f165eb985b5b4944d6a5ae2e6e1c48acb6e8d8114b0d447c046caff234b`. The record is not a fixture. Earlier rejected model movement and observation-loop recovery remain documented. The final target used the bounded skill after preserving its successful withdrawal; this is not a model-comparison claim.
+
+Exact work orders execute through `WorkOrders.nextStep(job)`, a guarded skill that derives remaining withdrawal/craft/deposit amounts from receipts. Models continue planning ordinary free-form objectives. The host must pass the same native tools, owner guards and verification rules to the skill. The public Worker contains only the reader; it cannot run this skill or claim tasks.
+
 Controlled test records are labelled and hidden by default. Native test evidence
 uses real isolated Minecraft workers with scripted planning; it does not establish
 a live owner/model work-order run or independent inspection. Existing owner-driven
