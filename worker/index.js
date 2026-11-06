@@ -1,10 +1,11 @@
-import {createTaskReader} from '../src/read.mjs'
+import {createTaskReader,validateProgress} from '../src/read.mjs'
+import {withWorkOrders} from '../src/work-orders.mjs'
 import deployment from '../deployment.json' with {type:'json'}
 
-const reader=createTaskReader(deployment)
+const reader=withWorkOrders(createTaskReader(deployment),validateProgress)
 const headers={'Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer','Content-Security-Policy':"default-src 'self'; script-src 'self'; style-src 'self'; frame-ancestors 'none'; base-uri 'none'; object-src 'none'"}
 const json=(value,status=200)=>new Response(JSON.stringify(value),{status,headers:{...headers,'Content-Type':'application/json'}})
-const assets={'/':['text/html; charset=utf-8',PUBLIC_HTML],'/app.js':['text/javascript; charset=utf-8',PUBLIC_JS],'/style.css':['text/css; charset=utf-8',PUBLIC_CSS]}
+const assets={'/':['text/html; charset=utf-8',PUBLIC_HTML],'/app.js':['text/javascript; charset=utf-8',PUBLIC_JS],'/style.css':['text/css; charset=utf-8',PUBLIC_CSS],'/orders.js':['text/javascript; charset=utf-8',PUBLIC_ORDERS]}
 
 export async function handleRequest(request,source=reader){
   const url=new URL(request.url)
@@ -12,6 +13,12 @@ export async function handleRequest(request,source=reader){
   if(url.href.length>2048)return json({error:'REQUEST_TOO_LONG'},414)
   if(assets[url.pathname]){const [type,body]=assets[url.pathname];return new Response(request.method==='HEAD'?null:body,{headers:{...headers,'Content-Type':type}})}
   if(url.pathname==='/api/manifest')return json(deployment)
+ if(url.pathname==='/api/orders'){
+  if([...url.searchParams.keys()].some(k=>!['kind','item'].includes(k)||url.searchParams.getAll(k).length!==1))return json({error:'INVALID_FILTER'},400)
+  const filters=Object.fromEntries(url.searchParams)
+  if(filters.kind!==undefined&&!['delivery','craft_delivery'].includes(filters.kind)||filters.item!==undefined&&!/^[a-z][a-z0-9_]{0,63}$/.test(filters.item))return json({error:'INVALID_FILTER'},400)
+  try{return json(await source.orders.list(filters))}catch{return json({error:'ARKIV_LIVE_READ_UNAVAILABLE',source:'unavailable'},503)}
+ }
   if(url.pathname==='/api/tasks'){
     const params=url.searchParams
     if([...params.keys()].some(k=>!['provider','status','offset'].includes(k)||params.getAll(k).length!==1))return json({error:'INVALID_FILTER'},400)

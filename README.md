@@ -10,6 +10,55 @@ The live board shows current records, their owner, expiry, exact JSON and handof
 
 ## Run it yourself
 
+### Structured two-worker work orders
+
+The Work orders section reads **`ethcraft.work-orders.v1`** directly from Rabdi.
+An approved Minecraft player publishes an exact material bill and two stages.
+Agent supplies materials to 0G; 0G reads the remaining stage from Arkiv, crafts or
+delivers the output, and deposits it. Paper checks exact source/destination deltas,
+known tool receipts and unchanged agent inventory totals before the stage advances.
+Completion is server-attested and still requires owner review. Public claim
+metadata is advisory; private authorization and execution fences remain in Minecraft.
+
+```text
+/agent agent order create craft_delivery stick 4
+/agent agent order discover
+/agent agent order claim <order ID>
+# After the server checks the supply stage:
+/agent 0g order discover
+/agent 0g order claim <order ID>
+/agent 0g order status <order ID>
+```
+
+Both workers must be owned, connected and idle. Supply two oak planks in Agent's
+registered source chest first. Supported workflows are exact delivery and bounded
+stick, oak_planks or stone_bricks recipes. They authorize no purchases or payments.
+One-hour execution deadlines differ from seven-day entity retention. Unknown
+physical effects block replay; a publication timeout retries the same signed bytes.
+
+```sh
+node scripts/query.mjs --orders
+node scripts/query.mjs <work-order-entity-key>
+```
+
+`GET /api/orders?kind=craft_delivery&item=stick` filters indexed immutable fields.
+The reader reconstructs latest order state across up to 500 snapshots and fails
+explicitly above that bound. Read [`src/work-orders.mjs`](src/work-orders.mjs) for
+the SDK schema and reader, and [`integration/work-orders.mjs`](integration/work-orders.mjs)
+for the host coordination service. The host injects its actual approved-session,
+native observer and objective adapters; those private adapters are not public APIs.
+
+Controlled test records are labelled and hidden by default. Native test evidence
+uses real isolated Minecraft workers with scripted planning; it does not establish
+a live owner/model work-order run or independent inspection. Existing owner-driven
+free-text handoff evidence remains separate. Prize eligibility is unchanged.
+
+[Verified staged test evidence](evidence/staged-work-order.json) links the isolated
+Minecraft checks with three actual Rabdi transactions. Final test entity:
+`0x88af9bfd577fb9be610933a48dc4128775f4d349509aa83f5b06980543dba6e0`.
+Enable **Include controlled test records**, or paste that key into entity lookup.
+The website fetches the record from Arkiv again; saved evidence is not a live fallback.
+
 Node 22.10+:
 
 ```sh

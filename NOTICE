@@ -9,3 +9,7 @@ not make the original project built from scratch at the event.
 Third-party packages retain their own licenses: Arkiv SDK and viem (MIT),
 esbuild (MIT). No Minecraft map, game asset, account, API key or wallet key is
 included. EthCraft's full repository remains private.
+
+Structured work-order schema, reader and host coordination service are extracted
+from source commit 4658c1442c9cd832e207f28a644e295e81387eee. Controlled native
+and Rabdi evidence retain their original test scope and verification limits.

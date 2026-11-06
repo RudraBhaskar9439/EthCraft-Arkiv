@@ -1,9 +1,11 @@
+import {workOrderCard,loadWorkOrders} from './orders.js'
 const byId=id=>document.getElementById(id)
 const tasks=byId('tasks'),network=byId('network'),refresh=byId('refresh'),older=byId('older'),provider=byId('provider'),fixtures=byId('fixtures')
 let nextOffset=null,records=[]
 const text=(tag,value,className)=>{const e=document.createElement(tag);e.textContent=value;if(className)e.className=className;return e}
 const link=(label,url)=>{const e=text('a',label);e.href=url;e.target='_blank';e.rel='noopener noreferrer';return e}
 function card(record){
+ if(record.recordType==='work-order')return workOrderCard(record)
   const e=document.createElement('article'),top=text('div','','cardtop')
   top.append(text('span',record.provider==='claude'?'Agent · Claude-capable':'0G worker','worker'),text('span',record.status.replaceAll('_',' '),'status'));e.append(top)
   if(record.facts.fixture)e.append(text('p','CONTROLLED DATA FIXTURE · No game actions','fixture'))
@@ -25,6 +27,7 @@ function render(){
   byId('jobs').textContent=visible.length;byId('steps').textContent=visible.reduce((n,r)=>n+r.facts.completedSteps,0);byId('handoffs').textContent=visible.filter(r=>r.facts.predecessor).length
 }
 async function load(next=false){
+ void loadWorkOrders('/api/orders',fixtures.checked)
   refresh.disabled=true;older.disabled=true;provider.disabled=true;network.textContent='Reading Rabdi…'
   try{
     const query=new URLSearchParams({offset:String(next?nextOffset:0)});if(provider.value)query.set('provider',provider.value)
@@ -41,4 +44,4 @@ async function readEntity(key){
   try{const response=await fetch('/api/entity?key='+encodeURIComponent(key),{cache:'no-store'}),data=await response.json();if(!response.ok)throw Error(data.error);result.replaceChildren(card(data.record));byId('entity').value=key;result.scrollIntoView({behavior:'smooth',block:'start'})}
   catch{result.replaceChildren(text('p','This entity is unavailable, expired, from another publisher/namespace, or does not match the supported schema.','empty'))}
 }
-refresh.addEventListener('click',()=>load());provider.addEventListener('change',()=>load());fixtures.addEventListener('change',render);older.addEventListener('click',()=>load(true));byId('lookup').addEventListener('submit',event=>{event.preventDefault();void readEntity(byId('entity').value.trim())});void load()
+refresh.addEventListener('click',()=>load());provider.addEventListener('change',()=>load());fixtures.addEventListener('change',()=>{render();void loadWorkOrders('/api/orders',fixtures.checked)});older.addEventListener('click',()=>load(true));byId('lookup').addEventListener('submit',event=>{event.preventDefault();void readEntity(byId('entity').value.trim())});void load()
